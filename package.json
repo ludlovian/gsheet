@@ -1,0 +1,26 @@
+{
+  "name": "@ludlovian/gsheet",
+  "version": "0.0.0",
+  "description": "Simple google sheets API",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.mjs"
+  },
+  "scripts": {
+    "clean": "rm -rf coverage/ node_modules/.cache/",
+    "lint": "standard '{src,test}/**/*.mjs'|snazzy",
+    "format": "prettier-standard '{src,test}/**/*.mjs'",
+    "test": "c8 node --env-file .env --test",
+    "coverage": "npm run test && c8 report --reporter=html && sirv coverage/ -p 8000 -H"
+  },
+  "dependencies": {
+    "@ludlovian/configure": "github:ludlovian/configure",
+    "@ludlovian/debug": "github:ludlovian/debug"
+  },
+  "devDependencies": {
+    "@googleapis/sheets": "^9.0.0"
+  },
+  "peerDependencies": {
+    "@googleapis/sheets": ">5.0.0"
+  }
+}
