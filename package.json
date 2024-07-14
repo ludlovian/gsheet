@@ -1,6 +1,6 @@
 {
   "name": "@ludlovian/gsheet",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Simple google sheets API",
   "type": "module",
   "exports": {
