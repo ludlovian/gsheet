@@ -72,6 +72,29 @@ export async function writeSheet (spreadsheetId, range, data) {
 }
 
 // -----------------------------------------------------------------
+//
+// clearSheet (spreadsheetId, range)
+//
+
+export async function clearSheet (spreadsheetId, range) {
+  const sheets = await getSheetApi()
+
+  debug('Clearing %s from %s', range, spreadsheetId)
+
+  const response = await sheets.spreadsheets.values.clear({
+    spreadsheetId,
+    range
+  })
+
+  // defensive
+  /* c8 ignore start */
+  if (response.status !== 200) {
+    throw Object.assign(new Error('Failed to read sheet'), { response })
+  }
+  /* c8 ignore stop */
+  return response
+}
+
 // Internal
 //
 // Load the API
