@@ -183,7 +183,7 @@ async function batchClear (spreadsheetId, ranges) {
     }
   }
 
-  const response = await sheets.spreadsheets.values.clear(params)
+  const response = await sheets.spreadsheets.values.batchClear(params)
 
   // defensive
   /* c8 ignore start */
