@@ -18,9 +18,9 @@
     "@ludlovian/debug": "github:ludlovian/debug"
   },
   "devDependencies": {
-    "@googleapis/sheets": "^9.0.0"
+    "googleapis": "^170.0.0"
   },
   "peerDependencies": {
-    "@googleapis/sheets": ">5.0.0"
+    "googleapis": "^170.0.0"
   }
 }
