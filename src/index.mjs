@@ -1,3 +1,4 @@
+import assert from 'node:assert'
 import process from 'node:process'
 import Debug from '@ludlovian/debug'
 import configure from '@ludlovian/configure'
@@ -6,10 +7,19 @@ export * from './range.mjs'
 export * from './dates.mjs'
 
 const debug = Debug('gsheets')
-const scopes = [
-  'https://www.googleapis.com/auth/spreadsheets',
-  'https://www.googleapis.com/auth/drive.metadata.readonly'
-]
+
+const API = {
+  sheets: {
+    import: '@googleapis/sheets',
+    version: 'v4',
+    scopes: ['https://www.googleapis.com/auth/spreadsheets']
+  },
+  drive: {
+    import: '@googleapis/drive',
+    version: 'v3',
+    scopes: ['https://www.googleapis.com/auth/drive.metadata.readonly']
+  }
+}
 
 const config = configure('GSHEETS_', {
   credentialsFile: 'creds/credentials.json'
@@ -26,7 +36,7 @@ const config = configure('GSHEETS_', {
 export async function readSheet (spreadsheetId, range) {
   if (Array.isArray(range)) return batchRead(spreadsheetId, range)
 
-  const { sheets } = await getGoogleApi()
+  const sheets = await getGoogleApi('sheets')
 
   debug('Reading %s from %s', range, spreadsheetId)
 
@@ -55,7 +65,7 @@ export async function readSheet (spreadsheetId, range) {
 }
 
 async function batchRead (spreadsheetId, ranges) {
-  const { sheets } = await getGoogleApi()
+  const sheets = await getGoogleApi('sheets')
 
   debug('Reading %s from %s', ranges.join(','), spreadsheetId)
 
@@ -89,7 +99,7 @@ async function batchRead (spreadsheetId, ranges) {
 export async function writeSheet (spreadsheetId, range, data) {
   if (Array.isArray(range)) return batchWrite(spreadsheetId, range, data)
 
-  const { sheets } = await getGoogleApi()
+  const sheets = await getGoogleApi('sheets')
 
   debug('updating %s of %s with %d rows', range, spreadsheetId, data.length)
 
@@ -116,7 +126,7 @@ async function batchWrite (spreadsheetId, ranges, datas) {
     throw new Error('Mismatch ranges and data arrays')
   }
 
-  const { sheets } = await getGoogleApi()
+  const sheets = await getGoogleApi('sheets')
 
   debug('updating %s of %s', ranges.join(','), spreadsheetId)
 
@@ -151,7 +161,7 @@ async function batchWrite (spreadsheetId, ranges, datas) {
 export async function clearSheet (spreadsheetId, range) {
   if (Array.isArray(range)) return batchClear(spreadsheetId, range)
 
-  const { sheets } = await getGoogleApi()
+  const sheets = await getGoogleApi('sheets')
 
   debug('Clearing %s from %s', range, spreadsheetId)
 
@@ -173,7 +183,7 @@ export async function clearSheet (spreadsheetId, range) {
 }
 
 async function batchClear (spreadsheetId, ranges) {
-  const { sheets } = await getGoogleApi()
+  const sheets = await getGoogleApi('sheets')
 
   debug('Clearing %s from %s', ranges.join(','), spreadsheetId)
 
@@ -202,7 +212,7 @@ async function batchClear (spreadsheetId, ranges) {
 // getLastModified (spreadsheetId)
 //
 export async function getLastModified (spreadsheetId) {
-  const { drive } = await getGoogleApi()
+  const drive = await getGoogleApi('drive')
   const res = await drive.files.get({
     // the spreadsheetId *is* the google drive id
     fileId: spreadsheetId,
@@ -217,16 +227,16 @@ export async function getLastModified (spreadsheetId) {
 //
 // Load the API
 
-let _api
-async function getGoogleApi () {
-  if (_api) return _api
-  _api = {}
+async function getGoogleApi (name) {
+  assert(API[name])
+  const api = API[name]
+  if (api._api) return api._api
 
-  const { google } = await import('googleapis')
+  const { scopes, version } = api
+  const clientApi = await import(api.import)
   process.env.GOOGLE_APPLICATION_CREDENTIALS ??= config.credentialsFile
-  const auth = new google.auth.GoogleAuth({ scopes })
-  const authClient = await auth.getClient()
-  _api.sheets = google.sheets({ version: 'v4', auth: authClient })
-  _api.drive = google.drive({ version: 'v3', auth: authClient })
-  return _api
+  const authApi = new clientApi.auth.GoogleAuth({ scopes })
+  const auth = await authApi.getClient()
+  api._api = await clientApi[name]({ version, auth })
+  return api._api
 }
