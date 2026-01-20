@@ -86,7 +86,7 @@ async function batchRead (spreadsheetId, ranges) {
   if (response.status !== 200 || !body) {
     throw Object.assign(new Error('Failed to read sheet'), { response })
   }
-  const data = body?.valueRanges.map(vr => vr.values) ?? []
+  const data = body?.valueRanges.map(vr => vr.values ?? []) ?? []
   debug('read %d ranges', data.length)
   /* c8 ignore stop */
   return data
