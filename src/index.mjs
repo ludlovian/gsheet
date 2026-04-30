@@ -2,6 +2,8 @@ import assert from 'node:assert'
 import process from 'node:process'
 import Debug from '@ludlovian/debug'
 import configure from '@ludlovian/configure'
+import googleSheetsApi from '@googleapis/sheets'
+import googleDriveApi from '@googleapis/drive'
 
 export * from './range.mjs'
 export * from './dates.mjs'
@@ -10,12 +12,10 @@ const debug = Debug('gsheets')
 
 const API = {
   sheets: {
-    import: '@googleapis/sheets',
     version: 'v4',
     scopes: ['https://www.googleapis.com/auth/spreadsheets']
   },
   drive: {
-    import: '@googleapis/drive',
     version: 'v3',
     scopes: ['https://www.googleapis.com/auth/drive.metadata.readonly']
   }
@@ -232,12 +232,7 @@ async function getGoogleApi (name) {
   const api = API[name]
   if (api._api) return api._api
 
-  let clientApi
-  if (name === 'sheets') {
-    clientApi = await import('@googleapis/sheets')
-  } else if (name === 'drive') {
-    clientApi = await import('@googleapis/drive')
-  }
+  const clientApi = name === 'sheets' ? googleSheetsApi : googleDriveApi
   const { scopes, version } = api
   process.env.GOOGLE_APPLICATION_CREDENTIALS ??= config.credentialsFile
   const authApi = new clientApi.auth.GoogleAuth({ scopes })

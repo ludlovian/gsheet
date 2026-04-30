@@ -1,4 +1,4 @@
-export class Range {
+class Range {
   // sheet for the range, or possibly undefined if the first sheet
   #sheet
 
@@ -33,6 +33,13 @@ export class Range {
     const bottom = cell?.row
 
     return this.fromProps({ top, left, bottom, right, sheet })
+  }
+
+  static from (data) {
+    if (data instanceof Range) return data
+    if (typeof data === 'string') return Range.fromRange(data)
+    if (data && typeof data === 'object') return Range.fromProps(data)
+    return new Range()
   }
 
   // Get / Set main properties
@@ -107,6 +114,10 @@ export class Range {
     ]
       .filter(Boolean)
       .join('!')
+  }
+
+  toUrl () {
+    return encodeURIComponent(this.toString())
   }
 
   // Status
@@ -184,26 +195,16 @@ export class Range {
   }
 }
 
-export function getColumnName (col) {
-  // Convert a column number (1, 2, ..., 26, 27, ...)
-  // into a column name (A, B, ..., Z, AA, ...)
-  //
-  // inspired by bb26
-  //
-  const toChar = n => String.fromCharCode(64 + n)
-  let s = ''
-  for (let n = col; n > 0; n = Math.floor(--n / 26)) {
-    s = toChar(n % 26 || 26) + s
-  }
-  return s
-}
+const getColumnName = Range.b26Encode
 
-export function getCellAddress (row, col) {
+function getCellAddress (row, col) {
   return getColumnName(col) + (row === Infinity ? '' : row.toString())
 }
 
-export function getRangeAddress (top, left, height, width) {
+function getRangeAddress (top, left, height, width) {
   const right = left + width - 1
   const bottom = top + height - 1
   return `${getCellAddress(top, left)}:` + `${getCellAddress(bottom, right)}`
 }
+
+export { Range, getColumnName, getCellAddress, getRangeAddress }

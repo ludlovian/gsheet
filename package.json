@@ -4,25 +4,17 @@
   "description": "Simple google sheets API",
   "type": "module",
   "exports": {
-    ".": "./src/index.mjs"
+    ".": "./src/index.js"
   },
   "scripts": {
     "clean": "rm -rf coverage/ node_modules/.cache/",
-    "lint": "standard '{src,test}/**/*.mjs'|snazzy",
-    "format": "prettier-standard '{src,test}/**/*.mjs'",
+    "lint": "standard '{src,test}/**/*.js'|snazzy",
+    "format": "prettier-standard '{src,test}/**/*.js'",
     "test": "c8 node --env-file .env --test",
     "coverage": "npm run test && c8 report --reporter=html && sirv coverage/ -p 8000 -H"
   },
   "dependencies": {
-    "@ludlovian/configure": "github:ludlovian/configure",
-    "@ludlovian/debug": "github:ludlovian/debug"
-  },
-  "devDependencies": {
-    "@googleapis/drive": "^20.0.0",
-    "@googleapis/sheets": "^13.0.1"
-  },
-  "peerDependencies": {
-    "@googleapis/drive": "^20.0.0",
-    "@googleapis/sheets": "^13.0.1"
+    "@ludlovian/configure": "link:../configure",
+    "@ludlovian/debug": "link:../debug"
   }
 }
