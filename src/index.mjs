@@ -232,8 +232,13 @@ async function getGoogleApi (name) {
   const api = API[name]
   if (api._api) return api._api
 
+  let clientApi
+  if (name === 'sheets') {
+    clientApi = await import('@googleapis/sheets')
+  } else if (name === 'drive') {
+    clientApi = await import('@googleapis/drive')
+  }
   const { scopes, version } = api
-  const clientApi = await import(api.import)
   process.env.GOOGLE_APPLICATION_CREDENTIALS ??= config.credentialsFile
   const authApi = new clientApi.auth.GoogleAuth({ scopes })
   const auth = await authApi.getClient()
