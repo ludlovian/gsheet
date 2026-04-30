@@ -1,8 +1,7 @@
 import assert from 'node:assert'
 import { readFileSync, existsSync } from 'node:fs'
 import crypto from 'node:crypto'
-
-import { fetch } from './fetch.js'
+import httpie from 'httpie'
 
 const CREDENTIALS_FILE = 'creds/credentials.json'
 assert(existsSync(CREDENTIALS_FILE), `${CREDENTIALS_FILE} is missing`)
@@ -11,6 +10,7 @@ const credentials = JSON.parse(readFileSync(CREDENTIALS_FILE, 'utf8'))
 const tokenMap = new Map() // scope => { token, expiryMs }
 
 export async function getAccessToken (scope) {
+  /* c8 ignore next */
   if (Array.isArray(scope)) scope = scope.join(' ')
   const entry = tokenMap.get(scope)
   if (entry) {
@@ -19,22 +19,18 @@ export async function getAccessToken (scope) {
 
   const jwt = getSignedJWT(scope)
 
-  const postData = [
-    'grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer',
-    `assertion=${jwt}`
-  ].join('&')
+  const body =
+    'grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer' +
+    `&assertion=${jwt}`
+  const headers = {
+    'Content-Type': 'application/x-www-form-urlencoded',
+    Accept: 'application/json'
+  }
+  const url = 'https://oauth2.googleapis.com/token'
 
-  const resp = await fetch({
-    hostname: 'oauth2.googleapis.com',
-    path: '/token',
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded'
-    },
-    body: postData
-  })
+  const resp = await httpie.post(url, { headers, body })
 
-  const token = resp.body.access_token
+  const token = resp.data.access_token
   const expiryMs = Date.now() + 55 * 60 * 1e3 // 55 mins
   tokenMap.set(scope, { token, expiryMs })
   return token

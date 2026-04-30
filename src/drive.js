@@ -1,7 +1,6 @@
 import { getAccessToken } from './auth.js'
+import httpie from 'httpie'
 import Debug from '@ludlovian/debug'
-
-import { fetch } from './fetch.js'
 
 const debug = Debug('gsheets')
 
@@ -21,16 +20,17 @@ export async function getLastModified (fileId) {
     fields: 'modifiedTime',
     supportsAllDrives: true
   })
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    Accept: 'application/json'
+  }
+  const url =
+    'https://www.googleapis.com' +
+    `/drive/v3/files/${fileId}?${params.toString()}`
 
-  const { body } = await fetch({
-    hostname: 'www.googleapis.com',
-    path: `/drive/v3/files/${fileId}?${params.toString()}`,
-    method: 'GET',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: 'application/json'
-    }
-  })
+  const { data: body } = await httpie.get(url, { headers })
+
+  /* c8 ignore next */
   if (!body?.modifiedTime) return null
   return new Date(body.modifiedTime)
 }

@@ -14,3 +14,16 @@ importers:
       '@ludlovian/debug':
         specifier: link:../debug
         version: link:../debug
+      httpie:
+        specifier: ^1.1.2
+        version: 1.1.2
+
+packages:
+
+  httpie@1.1.2:
+    resolution: {integrity: sha512-VQ82oXG95oY1fQw/XecHuvcFBA+lZQ9Vwj1RfLcO8a7HpDd4cc2ukwpJt+TUlFaLUAzZErylxWu6wclJ1rUhUQ==}
+    engines: {node: '>=8'}
+
+snapshots:
+
+  httpie@1.1.2: {}

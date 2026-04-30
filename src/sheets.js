@@ -1,8 +1,8 @@
 import assert from 'node:assert'
-import { getAccessToken } from './auth.js'
+import httpie from 'httpie'
 import Debug from '@ludlovian/debug'
 
-import { fetch } from './fetch.js'
+import { getAccessToken } from './auth.js'
 import { Range } from './range.js'
 
 const debug = Debug('gsheets')
@@ -33,18 +33,18 @@ async function batchRead (spreadsheetId, ranges) {
   })
   ranges.forEach(range => params.append('ranges', range))
 
-  const { body } = await fetch({
-    hostname: 'sheets.googleapis.com',
-    path:
-      '/v4/spreadsheets' +
-      `/${spreadsheetId}/values:batchGet` +
-      `?${params.toString()}`,
-    method: 'GET',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: 'application/json'
-    }
-  })
+  const url =
+    'https://sheets.googleapis.com' +
+    '/v4/spreadsheets' +
+    `/${spreadsheetId}/values:batchGet` +
+    `?${params.toString()}`
+
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    Accept: 'application/json'
+  }
+
+  const { data: body } = await httpie.get(url, { headers })
 
   /* c8 ignore next */
   const data = body?.valueRanges.map(vr => vr.values ?? []) ?? []
@@ -80,16 +80,16 @@ async function batchWrite (spreadsheetId, ranges, datas) {
     }))
   }
 
-  await fetch({
-    hostname: 'sheets.googleapis.com',
-    path: `/v4/spreadsheets/${spreadsheetId}/values:batchUpdate`,
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    },
-    body
-  })
+  const url =
+    'https://sheets.googleapis.com' +
+    `/v4/spreadsheets/${spreadsheetId}/values:batchUpdate`
+
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  }
+
+  await httpie.post(url, { headers, body })
 }
 
 //  ------------------------------------------------------------------------
@@ -110,15 +110,13 @@ async function batchClear (spreadsheetId, ranges) {
   debug('clearing %s of %s', ranges.join(','), spreadsheetId)
 
   const body = { ranges }
+  const url =
+    'https://sheets.googleapis.com' +
+    `/v4/spreadsheets/${spreadsheetId}/values:batchClear`
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  }
 
-  await fetch({
-    hostname: 'sheets.googleapis.com',
-    path: `/v4/spreadsheets/${spreadsheetId}/values:batchClear`,
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    },
-    body
-  })
+  await httpie.post(url, { headers, body })
 }
