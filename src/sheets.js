@@ -90,7 +90,7 @@ async function batchWrite (spreadsheetId, ranges, datas) {
     'Content-Type': 'application/json'
   }
 
-  await jeeves.post(url, { headers, body }).then(res => res.text())
+  await jeeves.post(url, { headers, body }).then(res => res.resume())
 }
 
 //  ------------------------------------------------------------------------
@@ -119,5 +119,5 @@ async function batchClear (spreadsheetId, ranges) {
     'Content-Type': 'application/json'
   }
 
-  await jeeves.post(url, { headers, body }).then(res => res.text())
+  await jeeves.post(url, { headers, body }).then(res => res.resume())
 }
