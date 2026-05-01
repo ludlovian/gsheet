@@ -14,8 +14,8 @@
     "coverage": "npm run test && c8 report --reporter=html && sirv coverage/ -p 8000 -H"
   },
   "dependencies": {
-    "@ludlovian/configure": "link:../configure",
-    "@ludlovian/debug": "link:../debug",
-    "@ludlovian/jeeves": "link:../jeeves"
+    "@ludlovian/configure": "file:../configure",
+    "@ludlovian/debug": "file:../debug",
+    "@ludlovian/jeeves": "file:../jeeves"
   }
 }
