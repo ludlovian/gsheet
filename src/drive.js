@@ -1,5 +1,5 @@
 import { getAccessToken } from './auth.js'
-import httpie from 'httpie'
+import jeeves from '@ludlovian/jeeves'
 import Debug from '@ludlovian/debug'
 
 const debug = Debug('gsheets')
@@ -28,7 +28,8 @@ export async function getLastModified (fileId) {
     'https://www.googleapis.com' +
     `/drive/v3/files/${fileId}?${params.toString()}`
 
-  const { data: body } = await httpie.get(url, { headers })
+  const resp = await jeeves.get(url, { headers })
+  const body = await resp.json()
 
   /* c8 ignore next */
   if (!body?.modifiedTime) return null

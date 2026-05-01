@@ -1,5 +1,5 @@
 import assert from 'node:assert'
-import httpie from 'httpie'
+import jeeves from '@ludlovian/jeeves'
 import Debug from '@ludlovian/debug'
 
 import { getAccessToken } from './auth.js'
@@ -44,7 +44,8 @@ async function batchRead (spreadsheetId, ranges) {
     Accept: 'application/json'
   }
 
-  const { data: body } = await httpie.get(url, { headers })
+  const resp = await jeeves.get(url, { headers })
+  const body = await resp.json()
 
   /* c8 ignore next */
   const data = body?.valueRanges.map(vr => vr.values ?? []) ?? []
@@ -89,7 +90,7 @@ async function batchWrite (spreadsheetId, ranges, datas) {
     'Content-Type': 'application/json'
   }
 
-  await httpie.post(url, { headers, body })
+  await jeeves.post(url, { headers, body }).then(res => res.text())
 }
 
 //  ------------------------------------------------------------------------
@@ -118,5 +119,5 @@ async function batchClear (spreadsheetId, ranges) {
     'Content-Type': 'application/json'
   }
 
-  await httpie.post(url, { headers, body })
+  await jeeves.post(url, { headers, body }).then(res => res.text())
 }

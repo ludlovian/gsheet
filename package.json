@@ -16,6 +16,6 @@
   "dependencies": {
     "@ludlovian/configure": "link:../configure",
     "@ludlovian/debug": "link:../debug",
-    "httpie": "^1.1.2"
+    "@ludlovian/jeeves": "link:../jeeves"
   }
 }

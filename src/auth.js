@@ -1,7 +1,7 @@
 import assert from 'node:assert'
 import { readFileSync, existsSync } from 'node:fs'
 import crypto from 'node:crypto'
-import httpie from 'httpie'
+import * as jeeves from '@ludlovian/jeeves'
 
 const CREDENTIALS_FILE = 'creds/credentials.json'
 assert(existsSync(CREDENTIALS_FILE), `${CREDENTIALS_FILE} is missing`)
@@ -28,9 +28,9 @@ export async function getAccessToken (scope) {
   }
   const url = 'https://oauth2.googleapis.com/token'
 
-  const resp = await httpie.post(url, { headers, body })
+  const resp = await jeeves.post(url, { headers, body })
 
-  const token = resp.data.access_token
+  const { access_token: token } = await resp.json()
   const expiryMs = Date.now() + 55 * 60 * 1e3 // 55 mins
   tokenMap.set(scope, { token, expiryMs })
   return token
