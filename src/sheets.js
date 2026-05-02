@@ -5,7 +5,7 @@ import Debug from '@ludlovian/debug'
 import { getAccessToken } from './auth.js'
 import { Range } from './range.js'
 
-const debug = Debug('gsheets')
+const debug = Debug('gsheet:sheets')
 
 const SCOPE = 'https://www.googleapis.com/auth/spreadsheets'
 

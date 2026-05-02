@@ -2,7 +2,7 @@ import { getAccessToken } from './auth.js'
 import jeeves from '@ludlovian/jeeves'
 import Debug from '@ludlovian/debug'
 
-const debug = Debug('gsheets')
+const debug = Debug('gsheet:drive')
 
 const SCOPE = 'https://www.googleapis.com/auth/drive.metadata.readonly'
 
