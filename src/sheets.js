@@ -1,4 +1,5 @@
 import assert from 'node:assert'
+import { gzipSync } from 'node:zlib'
 import jeeves from '@ludlovian/jeeves'
 import Debug from '@ludlovian/debug'
 
@@ -8,6 +9,8 @@ import { Range } from './range.js'
 const debug = Debug('gsheet:sheets')
 
 const SCOPE = 'https://www.googleapis.com/auth/spreadsheets'
+
+const GZIP_MIN = 1024
 
 //  ------------------------------------------------------------------------
 //
@@ -40,8 +43,9 @@ async function batchRead (spreadsheetId, ranges) {
     `?${params.toString()}`
 
   const headers = {
-    Authorization: `Bearer ${token}`,
-    Accept: 'application/json'
+    authorization: `Bearer ${token}`,
+    accept: 'application/json',
+    'accept-encoding': 'gzip'
   }
 
   const resp = await jeeves.get(url, { headers })
@@ -72,7 +76,7 @@ async function batchWrite (spreadsheetId, ranges, datas) {
 
   debug('updating %s of %s', ranges.join(','), spreadsheetId)
 
-  const body = {
+  const payload = {
     valueInputOption: 'RAW',
     data: datas.map((data, ix) => ({
       range: ranges[ix],
@@ -80,15 +84,16 @@ async function batchWrite (spreadsheetId, ranges, datas) {
       values: data
     }))
   }
+  const headers = {
+    authorization: `Bearer ${token}`,
+    'content-type': 'application/json'
+  }
+
+  const body = makeBody(payload, headers)
 
   const url =
     'https://sheets.googleapis.com' +
     `/v4/spreadsheets/${spreadsheetId}/values:batchUpdate`
-
-  const headers = {
-    Authorization: `Bearer ${token}`,
-    'Content-Type': 'application/json'
-  }
 
   await jeeves.post(url, { headers, body }).then(res => res.resume())
 }
@@ -110,14 +115,34 @@ async function batchClear (spreadsheetId, ranges) {
 
   debug('clearing %s of %s', ranges.join(','), spreadsheetId)
 
-  const body = { ranges }
   const url =
     'https://sheets.googleapis.com' +
     `/v4/spreadsheets/${spreadsheetId}/values:batchClear`
   const headers = {
-    Authorization: `Bearer ${token}`,
-    'Content-Type': 'application/json'
+    authorization: `Bearer ${token}`,
+    'content-type': 'application/json'
   }
+  const body = makeBody({ ranges }, headers)
 
   await jeeves.post(url, { headers, body }).then(res => res.resume())
+}
+
+//  ------------------------------------------------------------------------
+//
+//  utilities
+//
+
+function makeBody (payload, headers) {
+  const str = JSON.stringify(payload)
+  if (str.length < GZIP_MIN) {
+    const buff = Buffer.from(str)
+    headers['content-length'] = buff.length
+    return buff
+  } else {
+    const buff = gzipSync(str)
+    headers['content-encoding'] = 'gzip'
+    headers['content-length'] = buff.length
+    debug('gzip %d to %d', str.length, buff.length)
+    return buff
+  }
 }
