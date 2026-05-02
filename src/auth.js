@@ -19,14 +19,12 @@ export async function getAccessToken (scope) {
 
   const jwt = getSignedJWT(scope)
 
-  const body =
-    'grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer' +
-    `&assertion=${jwt}`
-  const headers = {
-    'Content-Type': 'application/x-www-form-urlencoded',
-    Accept: 'application/json'
-  }
   const url = 'https://oauth2.googleapis.com/token'
+  const headers = { accept: 'application/json' }
+  const body = new URLSearchParams({
+    grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+    assertion: jwt
+  })
 
   const resp = await jeeves.post(url, { headers, body })
 

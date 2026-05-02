@@ -44,8 +44,7 @@ async function batchRead (spreadsheetId, ranges) {
 
   const headers = {
     authorization: `Bearer ${token}`,
-    accept: 'application/json',
-    'accept-encoding': 'gzip'
+    accept: 'application/json'
   }
 
   const resp = await jeeves.get(url, { headers })
