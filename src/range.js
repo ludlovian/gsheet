@@ -20,19 +20,37 @@ class Range {
   }
 
   static fromRange (input) {
-    input = input.split('!')
-    const sheet = input.length > 1 ? input.shift() : undefined
+    // Parsing a range
+    //
+    // - if theres a ':' or '!' then it is easy
+    // - if neither, then it could be
+    //    - AZ123 - a cell,       if X{1,3}N+
+    //    - AZZ   - a column,     if X{1,3}
+    //    - sheet - a whole sheet
 
-    input = input[0].split(':')
-    let cell = this.#parseCell(input.shift())
-    const left = cell.col
-    const top = cell.row
+    const p = {}
+    let ix
+    ix = input.indexOf('!')
+    if (ix >= 0) {
+      p.sheet = input.slice(0, ix)
+      input = input.slice(ix + 1)
+    } else if (!input.includes(':') && !/^[A-Z]{1,3}\d{0,7}$/.test(input)) {
+      p.sheet = input
+      input = ''
+    }
 
-    cell = input.length ? this.#parseCell(input.shift()) : undefined
-    const right = cell?.col
-    const bottom = cell?.row
+    ix = input.indexOf(':')
+    if (ix >= 0) {
+      const cell = this.#parseCell(input.slice(ix + 1), Infinity)
+      p.right = cell.col
+      p.bottom = cell.row
+      input = input.slice(0, ix)
+    }
 
-    return this.fromProps({ top, left, bottom, right, sheet })
+    const cell = this.#parseCell(input, undefined)
+    p.left = cell.col
+    p.top = cell.row
+    return this.fromProps(p)
   }
 
   static from (data) {
@@ -159,12 +177,13 @@ class Range {
     }
   }
 
-  static #parseCell (addr) {
+  static #parseCell (addr, def) {
+    if (!addr) return {}
     const match = /^([A-Z]+)(\d+)?$/.exec(addr.toUpperCase())
     if (!match) return {}
     return {
       col: this.b26Decode(match[1]),
-      row: match[2] == null ? Infinity : +match[2]
+      row: match[2] == null ? def : +match[2]
     }
   }
 
@@ -181,6 +200,7 @@ class Range {
   }
 
   static b26Decode (colName) {
+    if (!colName) return undefined
     const codeA = 'A'.codePointAt(0)
     const toDecimal = x => x.codePointAt(0) - codeA + 1
     let m = 1
