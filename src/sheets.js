@@ -8,7 +8,8 @@ import { Range } from './range.js'
 
 const debug = Debug('gsheet:sheets')
 
-const SCOPE = 'https://www.googleapis.com/auth/spreadsheets'
+const RW_SCOPE = 'https://www.googleapis.com/auth/spreadsheets'
+const RO_SCOPE = 'https://www.googleapis.com/auth/spreadsheets.readonly'
 
 const GZIP_MIN = 1024
 
@@ -26,7 +27,7 @@ export async function readSheet (spreadsheetId, ranges) {
 
 async function batchRead (spreadsheetId, ranges) {
   ranges = ranges.map(range => Range.from(range).toString())
-  const token = await getAccessToken(SCOPE)
+  const token = await getAccessToken(RO_SCOPE)
   debug('Reading %s from %s', ranges.join(','), spreadsheetId)
 
   const params = new URLSearchParams({
@@ -71,7 +72,7 @@ async function batchWrite (spreadsheetId, ranges, datas) {
   assert(ranges.length === datas.length, 'Mismatch of datas and ranges')
   ranges = ranges.map(r => Range.from(r).toString())
 
-  const token = await getAccessToken(SCOPE)
+  const token = await getAccessToken(RW_SCOPE)
 
   debug('updating %s of %s', ranges.join(','), spreadsheetId)
 
@@ -110,7 +111,7 @@ export async function clearSheet (spreadsheetId, ranges) {
 async function batchClear (spreadsheetId, ranges) {
   ranges = ranges.map(r => Range.from(r).toString())
 
-  const token = await getAccessToken(SCOPE)
+  const token = await getAccessToken(RW_SCOPE)
 
   debug('clearing %s of %s', ranges.join(','), spreadsheetId)
 
