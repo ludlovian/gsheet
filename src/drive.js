@@ -11,8 +11,8 @@ const SCOPE = 'https://www.googleapis.com/auth/drive.metadata.readonly'
 // getLastModified (id)
 //
 
-export async function getLastModified (fileId) {
-  const token = await getAccessToken(SCOPE)
+export async function getLastModified (fileId, opts = {}) {
+  const token = await getAccessToken(SCOPE, opts)
 
   debug('Getting lastMod from %s', fileId)
 
@@ -28,7 +28,7 @@ export async function getLastModified (fileId) {
     'https://www.googleapis.com' +
     `/drive/v3/files/${fileId}?${params.toString()}`
 
-  const resp = await jeeves.get(url, { headers })
+  const resp = await jeeves.get(url, { ...opts, headers })
   const body = await resp.json()
 
   /* c8 ignore next */

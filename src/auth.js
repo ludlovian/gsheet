@@ -9,7 +9,7 @@ const credentials = JSON.parse(readFileSync(CREDENTIALS_FILE, 'utf8'))
 
 const tokenMap = new Map() // scope => { token, expiryMs }
 
-export async function getAccessToken (scope) {
+export async function getAccessToken (scope, opts = {}) {
   /* c8 ignore next */
   if (Array.isArray(scope)) scope = scope.join(' ')
   const entry = tokenMap.get(scope)
@@ -26,7 +26,7 @@ export async function getAccessToken (scope) {
     assertion: jwt
   })
 
-  const resp = await jeeves.post(url, { headers, body })
+  const resp = await jeeves.post(url, { ...opts, headers, body })
 
   const { access_token: token } = await resp.json()
   const expiryMs = Date.now() + 55 * 60 * 1e3 // 55 mins

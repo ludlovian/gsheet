@@ -18,16 +18,16 @@ const GZIP_MIN = 1024
 //  read
 //
 
-export async function readSheet (spreadsheetId, ranges) {
-  if (Array.isArray(ranges)) return batchRead(spreadsheetId, ranges)
-  const data = await batchRead(spreadsheetId, [ranges])
+export async function readSheet (spreadsheetId, ranges, opts = {}) {
+  if (Array.isArray(ranges)) return batchRead(spreadsheetId, ranges, opts)
+  const data = await batchRead(spreadsheetId, [ranges], opts)
   /* c8 ignore next */
   return data[0] ?? []
 }
 
-async function batchRead (spreadsheetId, ranges) {
+async function batchRead (spreadsheetId, ranges, opts = {}) {
   ranges = ranges.map(range => Range.from(range).toString())
-  const token = await getAccessToken(RO_SCOPE)
+  const token = await getAccessToken(RO_SCOPE, opts)
   debug('Reading %s from %s', ranges.join(','), spreadsheetId)
 
   const params = new URLSearchParams({
@@ -48,7 +48,7 @@ async function batchRead (spreadsheetId, ranges) {
     accept: 'application/json'
   }
 
-  const resp = await jeeves.get(url, { headers })
+  const resp = await jeeves.get(url, { ...opts, headers })
   const body = await resp.json()
 
   /* c8 ignore next */
@@ -63,16 +63,18 @@ async function batchRead (spreadsheetId, ranges) {
 //  write
 //
 
-export async function writeSheet (spreadsheetId, ranges, datas) {
-  if (Array.isArray(ranges)) return batchWrite(spreadsheetId, ranges, datas)
-  await batchWrite(spreadsheetId, [ranges], [datas])
+export async function writeSheet (spreadsheetId, ranges, datas, opts = {}) {
+  if (Array.isArray(ranges)) {
+    return batchWrite(spreadsheetId, ranges, datas, opts)
+  }
+  await batchWrite(spreadsheetId, [ranges], [datas], opts)
 }
 
-async function batchWrite (spreadsheetId, ranges, datas) {
+async function batchWrite (spreadsheetId, ranges, datas, opts = {}) {
   assert(ranges.length === datas.length, 'Mismatch of datas and ranges')
   ranges = ranges.map(r => Range.from(r).toString())
 
-  const token = await getAccessToken(RW_SCOPE)
+  const token = await getAccessToken(RW_SCOPE, opts)
 
   debug('updating %s of %s', ranges.join(','), spreadsheetId)
 
@@ -95,7 +97,7 @@ async function batchWrite (spreadsheetId, ranges, datas) {
     'https://sheets.googleapis.com' +
     `/v4/spreadsheets/${spreadsheetId}/values:batchUpdate`
 
-  await jeeves.post(url, { headers, body }).then(res => res.resume())
+  await jeeves.post(url, { ...opts, headers, body }).then(res => res.resume())
 }
 
 //  ------------------------------------------------------------------------
@@ -103,15 +105,15 @@ async function batchWrite (spreadsheetId, ranges, datas) {
 //  clear
 //
 
-export async function clearSheet (spreadsheetId, ranges) {
-  if (Array.isArray(ranges)) return batchClear(spreadsheetId, ranges)
-  await batchClear(spreadsheetId, [ranges])
+export async function clearSheet (spreadsheetId, ranges, opts = {}) {
+  if (Array.isArray(ranges)) return batchClear(spreadsheetId, ranges, opts)
+  await batchClear(spreadsheetId, [ranges], opts)
 }
 
-async function batchClear (spreadsheetId, ranges) {
+async function batchClear (spreadsheetId, ranges, opts = {}) {
   ranges = ranges.map(r => Range.from(r).toString())
 
-  const token = await getAccessToken(RW_SCOPE)
+  const token = await getAccessToken(RW_SCOPE, opts)
 
   debug('clearing %s of %s', ranges.join(','), spreadsheetId)
 
@@ -124,7 +126,7 @@ async function batchClear (spreadsheetId, ranges) {
   }
   const body = makeBody({ ranges }, headers)
 
-  await jeeves.post(url, { headers, body }).then(res => res.resume())
+  await jeeves.post(url, { ...opts, headers, body }).then(res => res.resume())
 }
 
 //  ------------------------------------------------------------------------
