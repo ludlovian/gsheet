@@ -7,12 +7,16 @@ const CREDENTIALS_FILE = 'creds/credentials.json'
 assert(existsSync(CREDENTIALS_FILE), `${CREDENTIALS_FILE} is missing`)
 const credentials = JSON.parse(readFileSync(CREDENTIALS_FILE, 'utf8'))
 
-const tokenMap = new Map() // scope => { token, expiryMs }
+const defaultCache = new Map() // scope => { token, expiryMs }
 
-export async function getAccessToken (scope, opts = {}) {
+export async function getAccessToken (scope, _opts = {}) {
+  const { authCache, ...opts } = _opts
   /* c8 ignore next */
   if (Array.isArray(scope)) scope = scope.join(' ')
-  const entry = tokenMap.get(scope)
+
+  const tokenCache = authCache ?? defaultCache
+
+  const entry = tokenCache.get(scope)
   if (entry) {
     if (entry.expiryMs > Date.now()) return entry.token
   }
@@ -30,7 +34,8 @@ export async function getAccessToken (scope, opts = {}) {
 
   const { access_token: token } = await resp.json()
   const expiryMs = Date.now() + 55 * 60 * 1e3 // 55 mins
-  tokenMap.set(scope, { token, expiryMs })
+
+  tokenCache.set(scope, { token, expiryMs })
   return token
 }
 
